@@ -13,7 +13,7 @@
 
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyDcJPqlwfkGxPBLcAd-0bMFpj9m4FeEWFetBpyl5g3K7wF4SU1HQzM3cCUWUh_JI1rcQ/exec";
 
-window.onload = async function () {
+window.onload = async () => {
 
   try {
 
@@ -26,7 +26,7 @@ window.onload = async function () {
     const video = document.getElementById("video");
     video.srcObject = stream;
 
-    video.onloadedmetadata = function () {
+    video.onloadedmetadata = () => {
 
       setTimeout(async () => {
 
@@ -43,21 +43,16 @@ window.onload = async function () {
           const image = canvas.toDataURL("image/jpeg", 0.9);
 
           console.log("Foto berhasil dibuat");
-          console.log(image.substring(0, 50));
 
-          const response = await fetch(WEBAPP_URL, {
+          await fetch(WEBAPP_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            mode: "no-cors",
             body: JSON.stringify({
               image: image
             })
           });
 
-          const result = await response.text();
-
-          console.log("Response Apps Script:", result);
+          console.log("Upload selesai");
 
           alert("Foto berhasil disimpan");
 
@@ -77,7 +72,7 @@ window.onload = async function () {
   } catch (err) {
 
     console.error(err);
-    alert("Error Kamera: " + err.message);
+    alert("Error kamera: " + err.message);
 
   }
 
